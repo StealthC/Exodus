@@ -1,0 +1,60 @@
+name: Build Exodus
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-x64:
+    name: Release x64
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify vendored third-party source layout
+        shell: pwsh
+        run: |
+          $requiredFiles = @(
+            'Third\zlib\zlib-1.2.8\adler32.c',
+            'Third\libjpeg\jpeg-9a\jaricom.c',
+            'Third\libpng\lpng1612\png.c',
+            'Third\libtiff\tiff-4.0.9\libtiff\tif_aux.c',
+            'Third\expat\expat-2.1.0\lib\xmlparse.c'
+          )
+          $missing = $requiredFiles | Where-Object { -not (Test-Path $_) }
+          if ($missing) { throw "Missing vendored third-party sources: $($missing -join ', ')" }
+
+      - name: Locate MSBuild
+        id: msbuild
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $msbuild = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+          if (-not $msbuild) { throw 'MSBuild was not found on the runner.' }
+          "path=$msbuild" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Build third-party libraries
+        shell: pwsh
+        run: |
+          & '${{ steps.msbuild.outputs.path }}' ThirdPartyLibraries.sln /m /t:Build /p:Configuration=Release /p:Platform=x64 /nologo /verbosity:minimal
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Build Exodus
+        shell: pwsh
+        run: |
+          & '${{ steps.msbuild.outputs.path }}' Exodus.sln /m /t:Build /p:Configuration=Release /p:Platform=x64 /nologo /verbosity:minimal
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: exodus-release-x64
+          if-no-files-found: error
+          path: |
+            Exodus.exe
+            System.dll
+            Assemblies/*.dll
