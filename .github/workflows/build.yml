@@ -50,11 +50,72 @@ jobs:
           & '${{ steps.msbuild.outputs.path }}' Exodus.sln /m /t:Build /p:Configuration=Release /p:Platform=x64 /nologo /verbosity:minimal
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
+      - name: Verify expected outputs
+        shell: pwsh
+        run: |
+          $root = $env:GITHUB_WORKSPACE
+          $requiredAfterBuild = @(
+            "$root\Exodus.exe",
+            "$root\System.dll",
+            "$root\Assemblies\M68000.dll",
+            "$root\Assemblies\Z80.dll"
+          )
+          $missing = $requiredAfterBuild | Where-Object { -not (Test-Path $_) }
+          if ($missing) { throw "Build did not produce expected output: $($missing -join ', ')" }
+
+      - name: Assemble release layout
+        shell: pwsh
+        run: |
+          $root = $env:GITHUB_WORKSPACE
+          $stage = "$root\dist\Exodus"
+          $dirs = 'Plugins', 'Modules', 'Workspaces', 'Captures', 'PersistentState', 'Savestates'
+          foreach ($d in $dirs) { $null = New-Item -ItemType Directory -Force "$stage\$d" }
+
+          Copy-Item "$root\Exodus.exe" $stage
+          Copy-Item "$root\System.dll" $stage
+          Copy-Item "$root\License.txt" $stage
+          Copy-Item "$root\ReleaseNotes.txt" $stage
+          Copy-Item "$root\Packaging\ReleaseSettings.xml" "$stage\settings.xml"
+
+          # Device/extension DLLs ship under Plugins\; the MCP plugin does not
+          # belong to this fork's release.
+          Copy-Item "$root\Assemblies\*.dll" "$stage\Plugins\"
+          Copy-Item "$root\Data\Modules\*.xml" "$stage\Modules\"
+          Copy-Item "$root\Data\Workspaces\*.xml" "$stage\Workspaces\"
+
+          $required = @(
+            "$stage\Exodus.exe",
+            "$stage\System.dll",
+            "$stage\settings.xml",
+            "$stage\Plugins\M68000.dll",
+            "$stage\Modules\Sega Mega Drive 1600.xml",
+            "$stage\Workspaces\Mega Drive Clean.xml"
+          )
+          $missing = $required | Where-Object { -not (Test-Path $_) }
+          if ($missing) { throw "Release staging is incomplete: $($missing -join ', ')" }
+
+      - name: Create release archive
+        shell: pwsh
+        run: |
+          $sevenZip = @("${env:ProgramFiles}\7-Zip\7z.exe", "${env:ProgramFiles(x86)}\7-Zip\7z.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $sevenZip) { throw '7-Zip was not found on the runner.' }
+          # Tag pushes produce Exodus-<tag>.7z (e.g. Exodus-2.1.7z); branch
+          # pushes and PRs use the short SHA so every artifact is unique.
+          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { $env:GITHUB_SHA.Substring(0, 7) }
+          $dist = "$env:GITHUB_WORKSPACE\dist"
+          $archive = "$dist\Exodus-$version.7z"
+          Push-Location $dist
+          try {
+            & $sevenZip a -t7z -mx=9 $archive Exodus
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          } finally {
+            Pop-Location
+          }
+
       - uses: actions/upload-artifact@v4
         with:
           name: exodus-release-x64
           if-no-files-found: error
           path: |
-            Exodus.exe
-            System.dll
-            Assemblies/*.dll
+            dist/Exodus
+            dist/Exodus-*.7z
