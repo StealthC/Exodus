@@ -5,6 +5,7 @@
 #include "ThreadLib/ThreadLib.pkg"
 #include "Stream/Stream.pkg"
 #include <sstream>
+#include <windows.h>
 #include <iostream>
 #include <iomanip>
 
@@ -1023,6 +1024,27 @@ void Processor::SetTraceFileLoggingEnabled(bool state)
 		CloseTraceFile();
 		_pendingTraceLogFileEntries.clear();
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool Processor::SetTraceFileLoggingPathAscii(const char* filePathUtf8)
+{
+	if (filePathUtf8 == 0)
+	{
+		return false;
+	}
+	int characterCount = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, filePathUtf8, -1, 0, 0);
+	if (characterCount <= 0)
+	{
+		return false;
+	}
+	std::wstring filePath((size_t)(characterCount - 1), L'\0');
+	MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, filePathUtf8, -1, &filePath[0], characterCount);
+	// The In wrapper is constructed and consumed inside this module, so no
+	// extension boundary is involved here.
+	Marshal::In<std::wstring> pathParam(filePath);
+	SetTraceLoggingFilePath(pathParam);
+	return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -103,6 +103,7 @@ actually executed are disassembled correctly.
 #define __PROCESSOR_H__
 #include "DeviceInterface/DeviceInterface.pkg"
 #include "Device/Device.pkg"
+#include <atomic>
 #include <string>
 #include <vector>
 #include <list>
@@ -205,6 +206,7 @@ public:
 	virtual void SetTraceLength(unsigned int state);
 	virtual Marshal::Ret<std::wstring> GetTraceLoggingFilePath() const;
 	virtual void SetTraceLoggingFilePath(const Marshal::In<std::wstring>& filePath);
+	virtual bool SetTraceFileLoggingPathAscii(const char* filePathUtf8) override;
 	virtual bool IsTraceFileLoggingEnabled() const;
 	virtual void SetTraceFileLoggingEnabled(bool state);
 	virtual Marshal::Ret<std::vector<TraceLogEntry>> GetTraceLog() const;
@@ -418,7 +420,7 @@ private:
 	std::wstring _traceFilePath;
 	Stream::File _traceFile;
 	bool _traceLogToFile;
-	volatile bool _traceLogEnabled;
+	std::atomic<bool> _traceLogEnabled;
 	bool _traceLogDisassemble;
 	unsigned int _traceLogLength;
 	unsigned int _traceLogNextWritePos = 0;
