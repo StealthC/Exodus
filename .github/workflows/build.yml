@@ -14,7 +14,7 @@ jobs:
     name: Release x64
     runs-on: windows-2022
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Verify vendored third-party source layout
         shell: pwsh
@@ -94,28 +94,9 @@ jobs:
           $missing = $required | Where-Object { -not (Test-Path $_) }
           if ($missing) { throw "Release staging is incomplete: $($missing -join ', ')" }
 
-      - name: Create release archive
-        shell: pwsh
-        run: |
-          $sevenZip = @("${env:ProgramFiles}\7-Zip\7z.exe", "${env:ProgramFiles(x86)}\7-Zip\7z.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if (-not $sevenZip) { throw '7-Zip was not found on the runner.' }
-          # Tag pushes produce Exodus-<tag>.7z (e.g. Exodus-2.1.7z); branch
-          # pushes and PRs use the short SHA so every artifact is unique.
-          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { $env:GITHUB_SHA.Substring(0, 7) }
-          $dist = "$env:GITHUB_WORKSPACE\dist"
-          $archive = "$dist\Exodus-$version.7z"
-          Push-Location $dist
-          try {
-            & $sevenZip a -t7z -mx=9 $archive Exodus
-            if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          } finally {
-            Pop-Location
-          }
-
-      - uses: actions/upload-artifact@v4
+      # GitHub zips the folder into a single download; no separate archive.
+      - uses: actions/upload-artifact@v6
         with:
           name: exodus-release-x64
           if-no-files-found: error
-          path: |
-            dist/Exodus
-            dist/Exodus-*.7z
+          path: dist/Exodus
