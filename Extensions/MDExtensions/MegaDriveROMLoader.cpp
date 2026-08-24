@@ -93,16 +93,28 @@ void MegaDriveROMLoader::LoadROMFile()
 	bool systemRunningState = system.SystemRunning();
 	system.StopSystem();
 
-	// If we currently have at least one ROM module loaded, and the system reports that we
-	// can't currently load the new ROM module, assume we're currently using up all
-	// available connectors, and unload the oldest of the currently loaded ROM modules.
+	// If the system reports that we can't currently load the new ROM module, assume we're
+	// currently using up all available connectors, and unload the oldest currently loaded
+	// ROM. We prefer to unload one of the ROM modules this loader loaded itself; when none
+	// of our own ROM modules are loaded we fall back to the oldest loaded program module,
+	// so a cartridge loaded by another extension (for example the MCP plugin) is replaced
+	// instead of failing with a "No available connector" error.
 	IGUIExtensionInterface& gui = GetGUIInterface();
-	if (!_currentlyLoadedROMModuleFilePaths.empty() && !gui.CanModuleBeLoaded(moduleFilePath))
+	if (!gui.CanModuleBeLoaded(moduleFilePath))
 	{
-		// Unload the oldest currently loaded ROM module
-		std::wstring oldestLoadedROMModule = *_currentlyLoadedROMModuleFilePaths.begin();
-		UnloadROMFileFromModulePath(oldestLoadedROMModule);
-		_currentlyLoadedROMModuleFilePaths.pop_front();
+		if (!_currentlyLoadedROMModuleFilePaths.empty())
+		{
+			// Unload the oldest currently loaded ROM module
+			std::wstring oldestLoadedROMModule = *_currentlyLoadedROMModuleFilePaths.begin();
+			UnloadROMFileFromModulePath(oldestLoadedROMModule);
+			_currentlyLoadedROMModuleFilePaths.pop_front();
+		}
+		else
+		{
+			// No ROM modules were loaded through this loader; unload the oldest program
+			// module owned by the system so the new ROM can use a free connector.
+			UnloadOldestProgramModule();
+		}
 	}
 
 	// Trigger an initialization of the system now that we're about to load a new ROM
@@ -170,6 +182,41 @@ void MegaDriveROMLoader::UnloadROMFileFromModulePath(const std::wstring& targetR
 
 	// If we managed to locate a module which was loaded from the target module file,
 	// unload it.
+	if (foundLoadedModuleID)
+	{
+		GetGUIInterface().UnloadModule(loadedModuleID);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void MegaDriveROMLoader::UnloadOldestProgramModule() const
+{
+	// Retrieve the set of ID numbers for all currently loaded modules. Module IDs are
+	// allocated in increasing order, so the first program module in this list is the
+	// oldest loaded program module.
+	std::list<unsigned int> loadedModuleIDs = GetSystemInterface().GetLoadedModuleIDs();
+
+	// Attempt to retrieve the ID of the oldest loaded program module
+	bool foundLoadedModuleID = false;
+	unsigned int loadedModuleID = { };
+	std::list<unsigned int>::const_iterator loadedModuleIDIterator = loadedModuleIDs.begin();
+	while (!foundLoadedModuleID && (loadedModuleIDIterator != loadedModuleIDs.end()))
+	{
+		LoadedModuleInfo moduleInfo;
+		if (GetSystemInterface().GetLoadedModuleInfo(*loadedModuleIDIterator, moduleInfo))
+		{
+			if (moduleInfo.GetIsProgramModule())
+			{
+				foundLoadedModuleID = true;
+				loadedModuleID = moduleInfo.GetModuleID();
+			}
+		}
+		++loadedModuleIDIterator;
+	}
+
+	// If we managed to locate a loaded program module, unload it. Program modules are
+	// only found when a ROM cartridge is currently loaded; the ROM loader extension
+	// itself is not a program module and must not be unloaded.
 	if (foundLoadedModuleID)
 	{
 		GetGUIInterface().UnloadModule(loadedModuleID);

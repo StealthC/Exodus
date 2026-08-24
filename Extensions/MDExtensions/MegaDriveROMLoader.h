@@ -28,6 +28,7 @@ private:
 private:
 	// ROM loading functions
 	void UnloadROMFileFromModulePath(const std::wstring& targetROMModulePath) const;
+	void UnloadOldestProgramModule() const;
 
 	// ROM module generation
 	bool BuildROMFileModuleFromFile(const std::wstring& filePath, IHierarchicalStorageNode& node, std::wstring& romName);
