@@ -296,6 +296,7 @@ BEGIN
         MENUITEM "&Pause System\tF2",           ID_FILE_PAUSESYSTEM
         MENUITEM "&Run System\tF3",             ID_FILE_RUNSYSTEM
         MENUITEM "&Hard Reset\tF4",             ID_FILE_HARDRESET
+        MENUITEM "&Soft Reset",                  ID_FILE_SOFTRESET
         MENUITEM "Toggle &Throttle\tF9",        ID_SYSTEM_TOGGLETHROTTLE
         MENUITEM "Dynamic Placeholder",         ID_SYSTEM_DYNAMICPLACEHOLDER
     END
@@ -345,7 +346,7 @@ BEGIN
             VALUE "FileDescription", "Exodus Hardware Emulator"
             VALUE "FileVersion", "2.1"
             VALUE "InternalName", "Exodus"
-            VALUE "LegalCopyright", "© 2006-2018 Exodus Open Source Project"
+            VALUE "LegalCopyright", "ï¿½ 2006-2018 Exodus Open Source Project"
             VALUE "OriginalFilename", "Exodus.exe"
             VALUE "ProductName", "Exodus"
             VALUE "ProductVersion", "2.1"

@@ -211,6 +211,7 @@ public:
 
 	// Special operation functions
 	void TriggerExternalReset(double resetTimeBegin, double resetTimeEnd);
+	virtual bool ExecuteExternalResetCycle();
 
 	// Memory access functions
 	FunctionCode GetFunctionCode(bool programReference) const;

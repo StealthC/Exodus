@@ -75,6 +75,10 @@ public:
 	virtual void SetExceptionDebugEntries(const Marshal::In<std::list<ExceptionDebuggingEntry>>& state) = 0;
 	virtual Marshal::Ret<std::wstring> GetExceptionName(Exceptions vectorNumber) const = 0;
 	virtual void TriggerException(Exceptions vectorNumber) = 0;
+
+	// Fork-private hardware reset hook. Unlike debugger register setters it
+	// runs the normal reset exception path, including the two bus vector reads.
+	virtual bool ExecuteExternalResetCycle() = 0;
 };
 
 #include "IM68000.inl"

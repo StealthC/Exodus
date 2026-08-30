@@ -1914,6 +1914,15 @@ void M68000::TriggerExternalReset(double resetTimeBegin, double resetTimeEnd)
 	_memoryBus->SetLineState((unsigned int)M68000::LineID::RESET, Data(1, 0), GetDeviceContext(), GetDeviceContext(), resetTimeEnd, 0);
 }
 
+bool M68000::ExecuteExternalResetCycle()
+{
+	// This is deliberately the same path used by ExecuteStep after RESET and
+	// HALT have been asserted. It is not a register write or a transparent
+	// debugger read, so ProcessException performs the real vector bus cycles.
+	ProcessException(Exceptions::Reset);
+	return true;
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // Memory access functions
 //----------------------------------------------------------------------------------------------------------------------

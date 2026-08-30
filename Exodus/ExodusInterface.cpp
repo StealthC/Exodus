@@ -2908,6 +2908,14 @@ LRESULT CALLBACK ExodusInterface::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 		case ID_FILE_HARDRESET:
 			state->_system->FlagInitialize();
 			break;
+		case ID_FILE_SOFTRESET:{
+			ISystemResetInterface* reset = dynamic_cast<ISystemResetInterface*>(state->_system);
+			SoftResetResult result;
+			if (reset == 0 || reset->GetISystemResetInterfaceVersion() != ISystemResetInterface::ThisISystemResetInterfaceVersion() || !reset->IsMegaDriveSoftResetAvailable() || !reset->SoftReset(result) || result.status != SoftResetResult::Success)
+			{
+				SafeMessageBox(state->_mainWindowHandle, L"The native Mega Drive soft reset is unavailable or its safety proof failed.", L"Soft Reset", MB_ICONEXCLAMATION);
+			}
+			break;}
 		case ID_SYSTEM_TOGGLETHROTTLE:
 			state->_system->SetThrottlingState(!state->_system->GetThrottlingState());
 			break;

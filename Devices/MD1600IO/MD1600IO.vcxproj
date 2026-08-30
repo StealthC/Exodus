@@ -292,6 +292,11 @@
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ExodusSDK\GenericAccess\GenericAccess.vcxproj">
+      <Project>{2F6DD00A-03EB-4FE1-95BE-F1AF9232F302}</Project>
+      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\..\ExodusSDK\Device\Device.vcxproj">
       <Project>{36693e5e-1462-4cfc-a240-2ccaa6483833}</Project>
       <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>

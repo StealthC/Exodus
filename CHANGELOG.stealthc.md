@@ -10,6 +10,21 @@ Each entry lists the fork commit, its date, and what changed and why. Entries
 are newest first. Stable upstream behaviour is never altered silently; anything
 that touches emulator semantics or packaging is called out here.
 
+## [ee94982] — native soft reset and GUI command
+
+`Devices/M68000/*`, `Devices/MD1600IO/*`, `Exodus/ExodusInterface.cpp`,
+`Exodus/Exodus.rc`, `ExodusSDK/SystemInterface/ISystemResetInterface.h`
+
+Adds the versioned native Mega Drive soft-reset transaction. It pulses the
+M68000/Z80 reset lines, executes the M68000 architectural reset-vector path,
+and reports explicit vector and preservation proofs for RAM, VDP registers,
+and exposed VDP buffers. The operation preserves the previous running/paused
+state and fails as unavailable or partial rather than claiming success when a
+proof cannot be completed. The System menu now exposes **Soft Reset**, using
+the same guarded interface and displaying an explanatory warning on failure.
+The MD1600IO project explicitly links the GenericAccess SDK required by the VDP
+register proof.
+
 ---
 
 ## [382d602] — 2026-08-24 — MegaDriveROMLoader: replace an externally loaded cartridge before loading
@@ -98,6 +113,7 @@ Vendors the third-party library sources under `Third/` (with
 fork can be built without a separate third-party checkout, and adds a GitHub
 Actions workflow that exercises the vendored third-party source check.
 
+[ee94982]: https://github.com/StealthC/Exodus/commit/ee94982
 [382d602]: https://github.com/StealthC/Exodus/commit/382d602
 [82548a6]: https://github.com/StealthC/Exodus/commit/82548a6
 [21b2049]: https://github.com/StealthC/Exodus/commit/21b2049

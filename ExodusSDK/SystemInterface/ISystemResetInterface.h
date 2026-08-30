@@ -19,6 +19,11 @@ struct SoftResetResult
 	unsigned int programCounterMask;
 	bool initialRunning;
 	bool finalRunning;
+	// These fields are appended to preserve the original v1 prefix while making
+	// the preservation proof explicit to bridge consumers.
+	bool workRamPreserved;
+	bool z80RamPreserved;
+	bool vdpPreserved;
 	const char* failureCode;
 	const char* failureDetail;
 };
