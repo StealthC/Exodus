@@ -58,7 +58,7 @@ should be able to be sent to all devices simultaneously.
 //##TODO## Split the module loading and unloading code into a separate source file. This
 // code currently occupies most of our System.cpp file, making it hard to find critical
 // system functions.
-class System :public ISystemGUIInterface
+class System :public ISystemGUIInterface, public ISystemResetInterface
 {
 public:
 	// Constructors
@@ -69,6 +69,9 @@ public:
 	virtual unsigned int GetISystemDeviceInterfaceVersion() const;
 	virtual unsigned int GetISystemExtensionInterfaceVersion() const;
 	virtual unsigned int GetISystemGUIInterfaceVersion() const;
+	virtual unsigned int GetISystemResetInterfaceVersion() const;
+	virtual bool IsMegaDriveSoftResetAvailable() const;
+	virtual bool SoftReset(SoftResetResult& result);
 
 	// Savestate functions
 	virtual bool LoadState(const Marshal::In<std::wstring>& filePath, FileType fileType, bool debuggerState);
@@ -449,6 +452,8 @@ private:
 private:
 	// Extension interfaces
 	IGUIExtensionInterface& _guiExtensionInterface;
+	// Serializes compound native operations independently of device locks.
+	mutable std::mutex _systemOperationMutex;
 
 	// Devices
 	DeviceLibraryList _deviceLibrary;

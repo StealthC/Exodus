@@ -302,6 +302,7 @@
     <ClCompile Include="A10000.cpp" />
     <ClCompile Include="interface.cpp" />
     <ClCompile Include="MDBusArbiter.cpp" />
+    <ClCompile Include="MegaDriveReset.cpp" />
     <ClCompile Include="MDControl3.cpp" />
     <ClCompile Include="MDControl6.cpp" />
   </ItemGroup>
@@ -309,6 +310,7 @@
     <ClInclude Include="A10000.h" />
     <ClInclude Include="interface.h" />
     <ClInclude Include="MDBusArbiter.h" />
+    <ClInclude Include="IMegaDriveReset.h" />
     <ClInclude Include="MDControl3.h" />
     <ClInclude Include="MDControl6.h" />
     <ClInclude Include="resource.h" />

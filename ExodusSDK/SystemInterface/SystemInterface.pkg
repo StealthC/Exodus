@@ -36,6 +36,7 @@
 #ifndef PACKAGE_LINK_LIBS_ONLY
 #include "ISystemInfo.h"
 #include "ISystemGUIInterface.h"
+#include "ISystemResetInterface.h"
 #include "IEmbeddedROMInfo.h"
 #include "EmbeddedROMInfo.h"
 #include "IModuleSettingInfo.h"

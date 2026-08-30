@@ -4,6 +4,7 @@
 #include "ZIP/ZIP.pkg"
 #include "ThreadLib/ThreadLib.pkg"
 #include "Image/Image.pkg"
+#include "MD1600IO/IMegaDriveReset.h"
 #include <time.h>
 #include <functional>
 #include <thread>
@@ -66,6 +67,63 @@ unsigned int System::GetISystemExtensionInterfaceVersion() const
 unsigned int System::GetISystemGUIInterfaceVersion() const
 {
 	return ThisISystemGUIInterfaceVersion();
+}
+
+unsigned int System::GetISystemResetInterfaceVersion() const
+{
+	return ThisISystemResetInterfaceVersion();
+}
+
+bool System::IsMegaDriveSoftResetAvailable() const
+{
+	const std::list<IDevice*> devices = GetLoadedDevices();
+	for (std::list<IDevice*>::const_iterator i = devices.begin(); i != devices.end(); ++i)
+	{
+		IMegaDriveReset* reset = dynamic_cast<IMegaDriveReset*>(*i);
+		if (reset != 0 && reset->GetIMegaDriveResetVersion() == IMegaDriveReset::ThisIMegaDriveResetVersion() && reset->IsMegaDriveResetReady())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool System::SoftReset(SoftResetResult& result)
+{
+	result = SoftResetResult();
+	result.status = SoftResetResult::Unavailable;
+	result.interfaceVersion = ThisISystemResetInterfaceVersion();
+	result.failureCode = "soft_reset_unavailable";
+	result.failureDetail = "No compatible Mega Drive reset coordinator is loaded.";
+	std::lock_guard<std::mutex> operationLock(_systemOperationMutex);
+	const bool wasRunning = SystemRunning();
+	result.initialRunning = wasRunning;
+	const std::list<IDevice*> devices = GetLoadedDevices();
+	for (std::list<IDevice*>::const_iterator i = devices.begin(); i != devices.end(); ++i)
+	{
+		IMegaDriveReset* reset = dynamic_cast<IMegaDriveReset*>(*i);
+		if (reset == 0 || reset->GetIMegaDriveResetVersion() != IMegaDriveReset::ThisIMegaDriveResetVersion() || !reset->IsMegaDriveResetReady())
+		{
+			continue;
+		}
+		if (wasRunning)
+		{
+			StopSystem();
+		}
+		const bool completed = reset->ExecuteMegaDriveSoftReset(*this, result);
+		if (wasRunning)
+		{
+			RunSystem();
+		}
+		result.finalRunning = SystemRunning();
+		if (!completed && result.status == SoftResetResult::Success)
+		{
+			result.status = SoftResetResult::Partial;
+		}
+		return completed;
+	}
+	result.finalRunning = SystemRunning();
+	return false;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

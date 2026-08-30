@@ -27,6 +27,9 @@
     <ClCompile Include="MDBusArbiter.cpp">
       <Filter>MDBusArbiter</Filter>
     </ClCompile>
+    <ClCompile Include="MegaDriveReset.cpp">
+      <Filter>MDBusArbiter</Filter>
+    </ClCompile>
     <ClCompile Include="MDControl6.cpp">
       <Filter>MDControl6</Filter>
     </ClCompile>
@@ -40,6 +43,9 @@
       <Filter>A10000</Filter>
     </ClInclude>
     <ClInclude Include="MDBusArbiter.h">
+      <Filter>MDBusArbiter</Filter>
+    </ClInclude>
+    <ClInclude Include="IMegaDriveReset.h">
       <Filter>MDBusArbiter</Filter>
     </ClInclude>
     <ClInclude Include="MDControl6.h">

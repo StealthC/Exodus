@@ -2,9 +2,10 @@
 #define __MDBUSARBITER_H__
 #include "DeviceInterface/DeviceInterface.pkg"
 #include "Device/Device.pkg"
+#include "IMegaDriveReset.h"
 #include <mutex>
 
-class MDBusArbiter :public Device
+class MDBusArbiter :public Device, public IMegaDriveReset
 {
 public:
 	// Constructors
@@ -54,6 +55,11 @@ public:
 	// Savestate functions
 	virtual void LoadState(IHierarchicalStorageNode& node);
 	virtual void SaveState(IHierarchicalStorageNode& node) const;
+
+	// IMegaDriveReset
+	virtual unsigned int GetIMegaDriveResetVersion() const;
+	virtual bool IsMegaDriveResetReady() const;
+	virtual bool ExecuteMegaDriveSoftReset(ISystemExtensionInterface& system, SoftResetResult& result);
 
 private:
 	// Enumerations

@@ -1,4 +1,5 @@
 #include "MDBusArbiter.h"
+#include "ExtensionInterface/ISystemExtensionInterface.h"
 //##DEBUG##
 #include <iostream>
 

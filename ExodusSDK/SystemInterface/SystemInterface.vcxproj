@@ -187,6 +187,7 @@
     <ClInclude Include="IModuleSettingInfo.h" />
     <ClInclude Include="IModuleSettingOptionInfo.h" />
     <ClInclude Include="ISystemGUIInterface.h" />
+    <ClInclude Include="ISystemResetInterface.h" />
     <ClInclude Include="ISystemInfo.h" />
     <ClInclude Include="ModuleSettingInfo.h" />
     <ClInclude Include="ModuleSettingOptionInfo.h" />
